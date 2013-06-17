@@ -184,6 +184,9 @@ class Phockito {
 
 		$classGeneratorHelper = new ClassGeneratorHelper($reflect, $partial ? 'Spy' : 'Mock');
 
+		// We cannot mock a final class - raise an error if we're trying
+		$classGeneratorHelper->raiseErrorIfMockedClassIsFinal();
+
 		// Build up an array of php fragments that make the mocking class definition
 		$php = array();
 
