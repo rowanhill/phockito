@@ -495,8 +495,13 @@ EOT;
 	static function include_hamcrest($include_globals = true) {
 		set_include_path(get_include_path().PATH_SEPARATOR.dirname(__FILE__).'/hamcrest-php/hamcrest');
 		
-		if ($include_globals) require_once('Hamcrest.php');
-		else require_once('Hamcrest/Matchers.php');
+		if ($include_globals) {
+			require_once('Hamcrest.php');
+			require_once('HamcrestTypeBridge_Globals.php');
+		} else {
+			require_once('Hamcrest/Matchers.php');
+			require_once('HamcrestTypeBridge.php');
+		}
 	}
 }
 

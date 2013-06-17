@@ -7,7 +7,10 @@ Phockito::include_hamcrest();
 class PhockitoHamcrestTest_MockMe {
 	function Foo($a, $b) { throw new Exception('Base method Foo was called'); }
 	function Bar($a) { throw new Exception('Base method Bar was called'); }
+    function Baz(PhockitoHamcrestTest_PassMe $a) { throw new Exception('Base method Baz was called'); }
 }
+
+class PhockitoHamcrestTest_PassMe {}
 
 class PhockitoHamcrestTest extends PHPUnit_Framework_TestCase {
 
