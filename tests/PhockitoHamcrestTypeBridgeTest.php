@@ -26,23 +26,23 @@ class PhockitoHamcrestTypeBridgeTest extends PHPUnit_Framework_TestCase {
     function testCanStubUsingMatchersForTypeHintedArguments() {
         $mock = Phockito::mock('PhockitoHamcrestTypeBridgeTest_MockMe');
 
-        Phockito::when($mock->Baz(
+        Phockito::when($mock->Foo(
 			HamcrestTypeBridge::argOfTypeThat('PhockitoHamcrestTypeBridgeTest_PassMe',
 				anInstanceOf('PhockitoHamcrestTypeBridgeTest_PassMe'))))
 			->return('PassMe');
 
-        $this->assertEquals($mock->Baz(new PhockitoHamcrestTypeBridgeTest_PassMe()), 'PassMe');
+        $this->assertEquals($mock->Foo(new PhockitoHamcrestTypeBridgeTest_PassMe()), 'PassMe');
     }
 
 	function testCanBridgeTypeWithTypeHintedConstructor() {
 		$mock = Phockito::mock('PhockitoHamcrestTypeBridgeTest_MockMe_Constructor');
 
-		Phockito::when($mock->Baz(
+		Phockito::when($mock->Foo(
 			HamcrestTypeBridge::argOfTypeThat('PhockitoHamcrestTypeBridgeTest_PassMe',
 				anInstanceOf('PhockitoHamcrestTypeBridgeTest_PassMe'))))
 			->return('PassMe');
 
-		$this->assertEquals($mock->Baz(new PhockitoHamcrestTypeBridgeTest_PassMe()), 'PassMe');
+		$this->assertEquals($mock->Foo(new PhockitoHamcrestTypeBridgeTest_PassMe()), 'PassMe');
 	}
 
 	/**
@@ -52,7 +52,7 @@ class PhockitoHamcrestTypeBridgeTest extends PHPUnit_Framework_TestCase {
 	function testCannotBridgeTypeWithHamcrestMatcherMethods() {
 		$mock = Phockito::mock('PhockitoHamcrestTypeBridgeTest_MockMe');
 
-		Phockito::when($mock->Baz(
+		Phockito::when($mock->Foo(
 			HamcrestTypeBridge::argOfTypeThat('PhockitoHamcrestTypeBridgeTest_PassMe_MatcherMethods',
 				anInstanceOf('PhockitoHamcrestTypeBridgeTest_PassMe_MatcherMethods'))))
 			->return('PassMe');
