@@ -16,41 +16,50 @@ class HamcrestTypeBridge {
 	}
 
 	private static function createBridgeType($type) {
-		$bridgeClass = "{$type}_Phockito_HamcrestTypeBridge";
+		$reflect = new ReflectionClass($type);
+		$classGeneratorHelper = new ClassGeneratorHelper($reflect, 'TypeBridge');
+
+		// We can't bridge a final class (as we need to extend it), so raise an error if we're trying
+		$classGeneratorHelper->raiseErrorIfMockedClassIsFinal();
+
+		$bridgeClass = $classGeneratorHelper->getDoubleShortName();
 
 		// If we've already built this bridge, just return it
 		if (class_exists($bridgeClass, false)) return $bridgeClass;
 
-		self::throwExceptionIfTypeHasMatcherMethods($type);
+		$namespace = $classGeneratorHelper->getNamespaceDeclaration();
+		$hamcrestMatcher = Phockito::_has_namespaces() ? '\\Hamcrest_Matcher' : 'Hamcrest_Matcher';
 
-		$php = array();
-		$php[] = "class $bridgeClass extends $type implements Hamcrest_Matcher {";
-		$php[] = "    private \$_matcher;";
-		$php[] = "    public function __construct(\$matcher) {";
-		$php[] = "        \$this->_matcher = \$matcher;";
-		$php[] = "    }";
-		$php[] = "    public function matches(\$item) {";
-		$php[] = "        return \$this->_matcher->matches(\$item);";
-		$php[] = "    }";
-		$php[] = "    public function describeMismatch(\$item, Hamcrest_Description \$description) {";
-		$php[] = "        return \$this->_matcher->describeMismatch(\$item, \$description);";
-		$php[] = "    }";
-		$php[] = "    public function describeTo(Hamcrest_Description \$description) {";
-		$php[] = "        return \$this->_matcher->describeTo(\$description);";
-		$php[] = "    }";
-		$php[] = "}";
+		self::raiseErrorIfTypeHasMatcherMethods($type);
 
-		eval(implode("\n\n", $php));
-
-		return $bridgeClass;
+		$php = <<<PHP
+$namespace
+class $bridgeClass extends $type implements $hamcrestMatcher {
+    private \$_matcher;
+    public function __construct(\$matcher) {
+        \$this->_matcher = \$matcher;
+    }
+    public function matches(\$item) {
+        return \$this->_matcher->matches(\$item);
+    }
+    public function describeMismatch(\$item, Hamcrest_Description \$description) {
+        return \$this->_matcher->describeMismatch(\$item, \$description);
+    }
+    public function describeTo(Hamcrest_Description \$description) {
+        return \$this->_matcher->describeTo(\$description);
+    }
+}
+PHP;
+		eval($php);
+		return $classGeneratorHelper->getDoubleFullName();
 	}
 
-	private static function throwExceptionIfTypeHasMatcherMethods($type) {
+	private static function raiseErrorIfTypeHasMatcherMethods($type) {
 		$reflectType = new ReflectionClass($type);
 		$reflectMatcher = new ReflectionClass('Hamcrest_Matcher');
 
 		$typeMethods = $reflectType->getMethods();
-		$matcherMethods = $reflectType->getMethods();
+		$matcherMethods = $reflectMatcher->getMethods();
 
 		foreach ($typeMethods as $typeMethod) {
 			foreach ($matcherMethods as $matcherMethod) {

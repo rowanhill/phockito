@@ -13,6 +13,9 @@ class PhockitoHamcrestTypeBridgeTest_MockMe_Constructor {
 	function Foo(PhockitoHamcrestTypeBridgeTest_PassMe $a) { throw new Exception('Base method Foo was called'); }
 }
 
+final class PhockitoHamcrestTypeBridgeTest_MockMe_Final {
+}
+
 class PhockitoHamcrestTypeBridgeTest_PassMe {}
 
 class PhockitoHamcrestTypeBridgeTest_PassMe_MatcherMethods {
@@ -53,5 +56,26 @@ class PhockitoHamcrestTypeBridgeTest extends PHPUnit_Framework_TestCase {
 			HamcrestTypeBridge::argOfTypeThat('PhockitoHamcrestTypeBridgeTest_PassMe_MatcherMethods',
 				anInstanceOf('PhockitoHamcrestTypeBridgeTest_PassMe_MatcherMethods'))))
 			->return('PassMe');
+	}
+
+	/**
+	 * @expectedException ReflectionException
+	 * @expectedExceptionMessage Class NotAClass does not exist
+	 */
+	function testBridgingInvalidTypeThrowsException() {
+		$mock = Phockito::mock('PhockitoHamcrestTypeBridgeTest_MockMe');
+
+		Phockito::when($mock->Foo(
+			HamcrestTypeBridge::argOfTypeThat('NotAClass',
+				anInstanceOf('NotAClass'))))
+			->return('PassMe');
+	}
+
+	/**
+	 * @expectedException PHPUnit_Framework_Error
+	 * @expectedExceptionCode E_USER_ERROR
+	 */
+	function testCannotBridgeFinalType() {
+		HamcrestTypeBridge::argOfTypeThat('PhockitoHamcrestTypeBridgeTest_MockMe_Final', anArray());
 	}
 }

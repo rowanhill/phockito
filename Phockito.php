@@ -1,5 +1,7 @@
 <?php
 
+require_once('ClassGeneratorHelper.php');
+
 /**
  * Phockito - Mockito for PHP
  *
@@ -40,7 +42,6 @@
  * starting with an "_" is for internal consumption only
  */
 class Phockito {
-	const MOCK_PREFIX = '__phockito_';
 
 	/* ** Static Configuration *
 		Feel free to change these at any time.
@@ -168,9 +169,8 @@ class Phockito {
 	 *
 	 * @static
 	 * @param bool $partial - Should test double be a partial or a full mock
-	 * @param string $mockerClass - The name of the class to create the mock as
 	 * @param string $mockedClass - The name of the class (or interface) to create a mock of
-	 * @return void
+	 * @return string The name of the mocker class
 	 */
 	protected static function build_test_double($partial, $mockedClass) {
 		// Bail if we were passed a classname that doesn't exist
@@ -182,29 +182,21 @@ class Phockito {
 		// Reflect on the mocked class
 		$reflect = new ReflectionClass($mockedClass);
 
+		$classGeneratorHelper = new ClassGeneratorHelper($reflect, $partial ? 'Spy' : 'Mock');
+
 		// Build up an array of php fragments that make the mocking class definition
 		$php = array();
 
-		// Get the namespace & the shortname of the mocked class
-		if (self::_has_namespaces()) {
-			$mockedNamespace = $reflect->getNamespaceName();
-			$mockedShortName = $reflect->getShortName();
-		}
-		else {
-			$mockedNamespace = '';
-			$mockedShortName = $mockedClass;
-		}
-
 		// Build the short name of the mocker class based on the mocked classes shortname
-		$mockerShortName = self::MOCK_PREFIX.$mockedShortName.($partial ? '_Spy' : '_Mock');
+		$mockerShortName = $classGeneratorHelper->getDoubleShortName();
 		// And build the full class name of the mocker by prepending the namespace if appropriate
-		$mockerClass = (self::_has_namespaces() ? $mockedNamespace.'\\' : '') . $mockerShortName;
+		$mockerClass = $classGeneratorHelper->getDoubleFullName();
 
 		// If we've already built this test double, just return it
 		if (class_exists($mockerClass, false)) return $mockerClass;
 
 		// If the mocked class is in a namespace, the test double goes in the same namespace
-		$namespaceDeclaration = $mockedNamespace ? "namespace $mockedNamespace;" : '';
+		$namespaceDeclaration = $classGeneratorHelper->getNamespaceDeclaration();
 
 		// The only difference between mocking a class or an interface is how the mocking class extends from the mocked
 		$extends = $reflect->isInterface() ? 'implements' : 'extends';
@@ -216,7 +208,7 @@ class Phockito {
 		// Add opening class stanza
 		$php[] = <<<EOT
 $namespaceDeclaration
-class $mockerShortName $extends $mockedShortName $marker {
+class $mockerShortName $extends {$classGeneratorHelper->getMockedShortName()} $marker {
   public \$__phockito_class;
   public \$__phockito_instanceid;
 
