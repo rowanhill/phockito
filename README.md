@@ -88,7 +88,7 @@ matches some rule.
 Hamcrest matchers are not included by default, so the first step is to call `Phockito::include_hamcrest();` immediately after including Phockito. 
 Note that this will import the Hamcrest matchers as global functions - passing false as an argument will keep your namespace clean by making all matchers only available as static methods of `Hamcrest` (at the expense of worse looking test code).
 
-Once included you can pass a hamcrest matcher as an argument in your when or verify rule, eg:
+Once included you can pass a Hamcrest matcher as an argument in your when or verify rule, eg:
 
 ```php
 class A {
@@ -99,7 +99,23 @@ $stub = Phockito::mock('A');
 Phockito::when($stub)->Foo(anything())->return('Zap');
 ```
 
-Some common hamcrest matchers:
+If you pass a Hamcrest matcher as an argument that has a type hint of a mismatched type, PHP will raise an error. To
+work around this, use `HamcrestTypeBridge::argOfTypeThat()` (or just `argOfTypeThat()` if you imported Hamcrest as global
+functions), e.g.:
+
+```php
+class A {
+    function Foo(B $b){ }
+}
+
+class B {}
+
+$stub = Phockito::mock('A');
+$b = new B();
+Phockito::when($stub)->Foo(argOfTypeThat('B', is(equalTo($b))))->return('Zap');
+```
+
+Some common Hamcrest matchers:
 
 - Core
 	* `anything` - always matches, useful if you don't care what the object under test is
